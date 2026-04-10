@@ -13,6 +13,8 @@ For complete documentation, see [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md)
 - Root access OR user account with sudo privileges
 - TAK Server package from [TAK.gov](https://tak.gov)
 
+**Docker path (different artifact):** the official **`takserver-docker-*.zip`** — not the `.deb`/`.rpm`. See [DEPLOYMENT-GUIDE.md — Docker](DEPLOYMENT-GUIDE.md#docker-tak-server-using-official-docker-zip-optional) and the official [TAK Server Configuration Guide (PDF)](docs/TAK_Server_Configuration_Guide.pdf) **§6**.
+
 ---
 
 ## 1. Download Scripts & Prepare

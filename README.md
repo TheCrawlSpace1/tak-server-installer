@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TAK Server](https://img.shields.io/badge/TAK%20Server-5.x-blue)](https://tak.gov)
 
-**Production-ready TAK Server deployment scripts for Rocky Linux 9 and Ubuntu 22.04**
+**Production-ready TAK Server deployment scripts for Rocky Linux 9 and Ubuntu 22.04**, plus an optional **Docker** workflow using the official `takserver-docker-*.zip` from [TAK.gov](https://tak.gov).
 
 Automated installation, SSL configuration, and comprehensive monitoring for TAK Server deployments. Created and maintained by [The TAK Syndicate](https://www.thetaksyndicate.org).
 
@@ -29,6 +29,8 @@ sudo ./ubuntu-22.04/install.sh
 sudo ./rocky-9/caddy-setup.sh      # or ubuntu-22.04/caddy-setup.sh
 sudo ./rocky-9/hardening.sh        # or ubuntu-22.04/hardening.sh
 ```
+
+**Docker (optional):** use the official Docker ZIP, then run `./docker/tak-docker-install.sh` (see [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md#docker-tak-server-using-official-docker-zip-optional)).
 
 **That's it!** Your TAK Server is running at `https://YOUR-IP:8443`
 
@@ -96,6 +98,9 @@ tak-server-installer/
 │   ├── install.sh              # TAK Server installation
 │   ├── caddy-setup.sh          # SSL/Let's Encrypt setup
 │   └── hardening.sh            # Production hardening & monitoring
+├── docker/
+│   ├── tak-docker-install.sh   # Install from takserver-docker-*.zip
+│   └── docker-compose.yml      # Optional stack after images are built
 ├── docs/
 │   └── guard-dogs.md           # Guard Dog monitoring explained
 ├── DEPLOYMENT-GUIDE.md         # Complete deployment guide
@@ -193,8 +198,9 @@ sudo ./ubuntu-22.04/hardening.sh
 
 ## 📚 Documentation
 
-- **[Complete Deployment Guide](DEPLOYMENT-GUIDE.md)** - Step-by-step instructions with troubleshooting
+- **[Complete Deployment Guide](DEPLOYMENT-GUIDE.md)** - Step-by-step instructions with troubleshooting (includes **Docker** with the official Docker ZIP)
 - **[Quick Start Guide](QUICK-START.md)** - Fast deployment for experienced users
+- **[TAK Server Configuration Guide (PDF)](docs/TAK_Server_Configuration_Guide.pdf)** - Official TAK Product Center reference (e.g. **§6** Docker install); confirm current revision on [TAK.gov](https://tak.gov)
 - **[Guard Dogs Explained](docs/guard-dogs.md)** - Understanding the monitoring system
 
 ---
@@ -288,4 +294,4 @@ It helps others find it and motivates continued development.
 
 **Latest Update:** January 2026  
 **Compatible with:** TAK Server 5.x series  
-**Tested on:** Rocky Linux 9, RHEL 9, Ubuntu 22.04 LTS
+**Tested on:** Rocky Linux 9, RHEL 9, Ubuntu 22.04 LTS; Docker path uses the official container bundle from TAK.gov

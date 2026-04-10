@@ -1,0 +1,53 @@
+# TAK Server Docker — use after building images from the official takserver-docker-*.zip
+# (TAK Server Configuration Guide v5.6 §6.2; PDF in docs/TAK_Server_Configuration_Guide.pdf).
+# Set VERSION to match tak/version.txt, e.g.:
+#   export VERSION="$(cat tak/version.txt)"
+#   docker compose up -d
+#
+# Database hostname from other containers: tak-database (alias) or takserver-db (service name).
+
+services:
+  takserver-db:
+    image: takserver-db:${VERSION}
+    container_name: takserver-db-${VERSION}
+    volumes:
+      - ./tak:/opt/tak:z
+      - tak-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      tak-net:
+        aliases:
+          - tak-database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U martiuser -d cot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  takserver:
+    image: takserver:${VERSION}
+    container_name: takserver-${VERSION}
+    depends_on:
+      takserver-db:
+        condition: service_healthy
+    volumes:
+      - ./tak:/opt/tak:z
+    ports:
+      - "8089:8089"
+      - "8443:8443"
+      - "8444:8444"
+      - "8446:8446"
+      - "9000:9000"
+      - "9001:9001"
+    restart: unless-stopped
+    networks:
+      - tak-net
+
+networks:
+  tak-net:
+    name: takserver-net
+
+volumes:
+  tak-db-data:

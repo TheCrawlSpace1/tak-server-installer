@@ -15,6 +15,7 @@ This guide covers the complete deployment of TAK Server across multiple Linux di
 
 - [SECTION 1: Prerequisites](#section-1-prerequisites)
 - [SECTION 2: TAK Server Installation](#section-2-tak-server-installation)
+- [DOCKER: TAK Server using official Docker ZIP (optional)](#docker-tak-server-using-official-docker-zip-optional)
 - [SECTION 3: Domain & SSL Configuration](#section-3-domain--ssl-configuration-optional)
 - [SECTION 4: Hardening & Monitoring](#section-4-hardening--monitoring)
 - [SECTION 5: Post-Installation](#section-5-post-installation)
@@ -284,6 +285,83 @@ tail -100 /opt/tak/logs/takserver-messaging.log
 
 
 Look for "Started ServerConfiguration" messages.
+
+## DOCKER: TAK Server using official Docker ZIP (optional)
+
+
+This path is **separate** from the Rocky/Ubuntu `.rpm` / `.deb` installs above. Use it when you deploy from the official **`takserver-docker-*.zip`** package from [TAK.gov](https://tak.gov).
+
+**Authoritative reference (bundled in this repo):** [docs/TAK_Server_Configuration_Guide.pdf](docs/TAK_Server_Configuration_Guide.pdf) — *TAK Server Configuration Guide*, Version **5.6**, December **2025**, **Section 6** *Containerized Installation (Docker)*. The detailed command sequence is **§6.2** *Building and Installing Container Images Using Docker* (standard bundle). **§6.1** covers Iron Bank; **§6.2** also references the hardened ZIP (`takserver-docker-hardened-<version>.zip`) with extra CA/container steps. Appendix **B** in that PDF covers certificate tooling (`cert-metadata.sh`, `makeRootCa.sh`, `makeCert.sh`).
+
+What the guide expects at a high level (matches `docker/tak-docker-install.sh`):
+
+1. Copy `tak/CoreConfig.example.xml` → `CoreConfig.xml` and set the **database password** before building images.
+2. `docker build` for **`takserver-db`** using `docker/Dockerfile.takserver-db` (or hardened Dockerfile when using the hardened bundle).
+3. `docker network create takserver-"$(cat tak/version.txt)"`.
+4. `docker run` the DB container with **`--network-alias tak-database`** (Compose in this repo uses the same alias on a user-defined network).
+5. `docker build` for **`takserver`** using `docker/Dockerfile.takserver`.
+6. `docker run` the TAK Server container with the published ports (8089, 8443, 8444, 8446, 9000, 9001 by default).
+7. Configure **`tak/certs/cert-metadata.sh`**, generate CA and certs inside the container, then **`./configureInDocker.sh`**, tail **`tak/logs/`** from the host, and run **UserManager** to authorize the admin client PEM.
+
+For the newest PDF, always check [TAK.gov](https://tak.gov) in case the bundled copy is behind your deployment.
+
+### When to use Docker
+
+- You want TAK Server and PostgreSQL in containers (no native `takserver` systemd service on the host).
+- You have the Docker ZIP, not the RPM/DEB.
+
+### Requirements
+
+- Linux host with Docker (Ubuntu 22.04, Rocky Linux 9, Jetson Ubuntu, etc.)
+- Same rough VPS sizing as native installs (8GB+ RAM, 4+ cores, 50GB+ disk)
+- Place `takserver-docker-*.zip` in `~/tak-docker/` (or set `INSTALL_DIR` in the script)
+
+### Automated install (recommended)
+
+From this repository:
+
+```bash
+git clone https://github.com/takwerx/tak-server-installer.git
+# Copy the Docker ZIP into ~/tak-docker/ (see script header for INSTALL_DIR)
+cp /path/to/takserver-docker-5.x-RELEASE-x.zip ~/tak-docker/
+chmod +x ~/tak-server-installer/docker/tak-docker-install.sh
+~/tak-server-installer/docker/tak-docker-install.sh
+```
+
+The script:
+
+1. Installs Docker if missing (apt or dnf), configures `CoreConfig.xml` and `cert-metadata.sh`, builds `takserver-db` and `takserver` images, runs containers, generates certificates, and promotes the admin client.
+
+Edit variables at the top of `docker/tak-docker-install.sh` (CA name, org fields, cert password, etc.) before running.
+
+### Compose (optional)
+
+After the ZIP is extracted and **both images are built** (`takserver-db:${VERSION}` and `takserver:${VERSION}`), you can run the stack with Compose from the **extracted** directory (where `tak/` and `docker/` exist):
+
+```bash
+export VERSION="$(cat tak/version.txt)"
+cp /path/to/tak-server-installer/docker/docker-compose.yml .
+docker compose up -d
+```
+
+`docker/docker-compose.yml` in this repo defines a shared network and DB alias **`tak-database`** so hostnames match the usual Docker guide expectations. Database data can persist in the named volume `tak-db-data`.
+
+### Differences from native Rocky/Ubuntu scripts
+
+- Uses the **Docker ZIP**, not RPM/DEB.
+- **Caddy** and **hardening / Guard Dog** scripts in this repo target **systemd + `/opt/tak`** installs; they are not applied automatically to Docker. Use container logs, host monitoring, or your orchestrator for health checks.
+- Default client cert password remains **`atakatak`** unless you change it in the script.
+
+### Verify
+
+```bash
+docker ps
+docker logs -f takserver-$(cat tak/version.txt)
+```
+
+Web UI: `https://YOUR-IP:8443` (import `admin.p12` as with native install).
+
+For exact commands and hardened-image differences, use **§6** in [docs/TAK_Server_Configuration_Guide.pdf](docs/TAK_Server_Configuration_Guide.pdf) or the latest guide from [TAK.gov](https://tak.gov).
 
 ## SECTION 3: DOMAIN & SSL CONFIGURATION (OPTIONAL)
 
