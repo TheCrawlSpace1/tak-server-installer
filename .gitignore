@@ -3,6 +3,10 @@
 *.deb
 *.noarch.rpm
 *_all.deb
+*.zip
+
+# Apache Ignite runtime working directory (auto-generated)
+ignite/
 
 # TAK Server verification files
 *.gpg
