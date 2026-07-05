@@ -8,82 +8,39 @@ For complete documentation, see [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md)
 
 ## Prerequisites
 
-- Fresh Rocky Linux 9, RHEL 9, or Ubuntu 22.04 VPS
+- Fresh Ubuntu 22.04 or 24.04 LTS VPS
 - 8GB+ RAM, 4+ CPU cores, 50GB+ storage
 - Root access OR user account with sudo privileges
-- TAK Server package from [TAK.gov](https://tak.gov)
+- TAK Server `.deb` packages from [TAK.gov](https://tak.gov)
 
-**Docker path (different artifact):** the official **`takserver-docker-*.zip`** — not the `.deb`/`.rpm`. See [DEPLOYMENT-GUIDE.md — Docker](DEPLOYMENT-GUIDE.md#docker-tak-server-using-official-docker-zip-optional) and the official [TAK Server Configuration Guide (PDF)](docs/TAK_Server_Configuration_Guide.pdf) **§6**.
+**Docker path (different artifact):** the official **`takserver-docker-*.zip`** — not the `.deb`. See [DEPLOYMENT-GUIDE.md — Docker](DEPLOYMENT-GUIDE.md#docker-tak-server-using-official-docker-zip-optional) and the official [TAK Server Configuration Guide (PDF)](docs/TAK_Server_Configuration_Guide.pdf) **§6**.
 
 ---
 
-## 1. Download Scripts & Prepare
+## 1. Clone the Repo & Prepare
 
-> **Note:** If not running as root, your user account must have sudo privileges. All installation commands require root access.
+> **Note:** If not running as root, your user account must have sudo privileges. The install script requires root access.
 
-
-**For Ubuntu 22.04:**
 ```bash
-git clone https://github.com/takwerx/tak-server-installer.git
-cd ~/tak-server-installer/ubuntu-22.04
+git clone https://github.com/TheCrawlSpace1/tak-server-installer.git
+cd tak-server-installer/ubuntu-22.04
 ```
 
-**For Rocky Linux 9 / RHEL 9:**
+**Upload your TAK Server `.deb` packages to this directory** (`takserver-core_*.deb` and `takserver-database_*.deb`, from [TAK.gov](https://tak.gov)):
+
 ```bash
-git clone https://github.com/takwerx/tak-server-installer.git
-cd ~/tak-server-installer/rocky-9
+scp takserver-core_*.deb takserver-database_*.deb root@YOUR-IP:~/tak-server-installer/ubuntu-22.04/
 ```
 
-**Upload your TAK Server installation file to the directory you're in:**
-- Ubuntu: Upload `takserver_X.X-RELEASEX_all.deb` to `~/tak-server-installer/ubuntu-22.04/`
-- Rocky/RHEL: Upload `takserver-X.X-RELEASEX.noarch.rpm` to `~/tak-server-installer/rocky-9/`
-
-**OPTIONAL - Upload signature verification files to the same directory:**
-- Ubuntu: `takserver-public-gpg.key` AND `deb_policy.pol`
-- Rocky/RHEL: `takserver-public-gpg.key`
-
-> **Important:** The TAK Server installation file, scripts, and optional verification files must all be in the same directory!
-
-**Make scripts executable:**
-
-**For Ubuntu 22.04:**
-```bash
-cd ~/tak-server-installer/ubuntu-22.04
-chmod +x Ubuntu_22.04_TAK_Server_install.sh
-chmod +x Ubuntu_22.04_Caddy_setup.sh
-chmod +x Ubuntu_22.04_TAK_Server_Hardening.sh
-```
-
-**For Rocky Linux 9 / RHEL 9:**
-```bash
-cd ~/tak-server-installer/rocky-9
-chmod +x Rocky_9_TAK_Server_install.sh
-chmod +x Rocky_9_Caddy_setup.sh
-chmod +x Rocky_9_TAK_Server_Hardening.sh
-```
+> **Important:** The `.deb` packages must be in the same directory as `tak_auto_install.sh`.
 
 ---
 
 ## 2. Install TAK Server
 
-### Ubuntu 22.04
-
 ```bash
-# Change to the script directory
 cd ~/tak-server-installer/ubuntu-22.04
-
-# Run the install script (make sure .deb file is in this directory)
-sudo ./Ubuntu_22.04_TAK_Server_install.sh
-```
-
-### Rocky Linux 9 / RHEL 9
-
-```bash
-# Change to the script directory
-cd ~/tak-server-installer/rocky-9
-
-# Run the install script (make sure .rpm file is in this directory)
-sudo ./Rocky_9_TAK_Server_install.sh
+sudo ./tak_auto_install.sh
 ```
 
 **During install:**
@@ -93,10 +50,10 @@ sudo ./Rocky_9_TAK_Server_install.sh
 
 **Completion time:** ~15-25 minutes
 
-> **⚠️ Wait 5 minutes** after installation completes before accessing web interface!
+> **⚠️ Wait 5 minutes** after installation completes before accessing the web interface!
 
-**Access:** `https://YOUR-IP:8443`  
-**Certificate:** `/opt/tak/certs/files/admin.p12`  
+**Access:** `https://YOUR-IP:8443`
+**Certificate:** `/opt/tak/certs/files/admin.p12`
 **Password:** `atakatak`
 
 **Download the admin certificate to your computer:**
@@ -118,85 +75,6 @@ Now browse to `https://YOUR-IP:8443` and select the admin certificate when promp
 
 ---
 
-## 3. Add SSL (Optional)
-
-**Prerequisites:**
-- Domain name
-- DNS A record pointing to VPS IP
-- TAK Server installed and working
-
-### Ubuntu 22.04
-
-```bash
-# Change to the script directory
-cd ~/tak-server-installer/ubuntu-22.04
-
-# Run Caddy setup
-sudo ./Ubuntu_22.04_Caddy_setup.sh
-```
-
-### Rocky Linux 9 / RHEL 9
-
-```bash
-# Change to the script directory
-cd ~/tak-server-installer/rocky-9
-
-# Run Caddy setup
-sudo ./Rocky_9_Caddy_setup.sh
-```
-
-**During setup:**
-- Enter your domain name
-- Confirm domain name
-
-> **⚠️ Wait 5 minutes** after completion before accessing via domain.
-
-**Access:** `https://yourdomain.com:8443`
-
----
-
-## 4. Add Hardening (Optional)
-
-Production-grade monitoring and auto-restart.
-
-### Ubuntu 22.04
-
-```bash
-# Change to the script directory
-cd ~/tak-server-installer/ubuntu-22.04
-
-# Run hardening script
-sudo ./Ubuntu_22.04_TAK_Server_Hardening.sh
-```
-
-### Rocky Linux 9 / RHEL 9
-
-```bash
-# Change to the script directory
-cd ~/tak-server-installer/rocky-9
-
-# Run hardening script
-sudo ./Rocky_9_TAK_Server_Hardening.sh
-```
-
-**During hardening:**
-- SSH port change (optional, recommended)
-- Email address(es) for alerts
-- SMS alerts (optional, carrier-dependent)
-- **Email configuration:**
-  - **Option 1:** Custom SMTP relay (Mailgun, SendGrid, internal server, etc.)
-  - **Option 2:** Gmail SMTP relay (simplified setup)
-- Test alerts
-
-**Features added:**
-- 7 monitoring "Guard Dogs" (port 8089, OOM, disk, database, network, process, certificates)
-- Auto-restart on failure
-- Email & SMS alerts
-- Health endpoint on port 8080
-- Log rotation
-
----
-
 ## Verification Commands
 
 **Check TAK Server status:**
@@ -209,16 +87,6 @@ systemctl status takserver
 ps -ef | grep takserver.war
 ```
 Should show 5 processes: config, messaging, api, plugins, retention
-
-**Check Guard Dog timers:**
-```bash
-systemctl list-timers | grep tak
-```
-
-**Test health endpoint:**
-```bash
-curl http://localhost:8080/health
-```
 
 ---
 
@@ -245,18 +113,6 @@ scp root@YOUR-IP:/opt/tak/certs/files/admin.p12 .
 ls -la /opt/tak/certs/files/
 ```
 
-### Guard Dog Management
-```bash
-# View restart log
-cat /var/log/takguard/restarts.log
-
-# Test guard dog manually
-/opt/tak-guarddog/tak-8089-watch.sh
-
-# Check guard dog status
-systemctl status tak8089guard.timer
-```
-
 ---
 
 ## File Locations
@@ -266,9 +122,6 @@ systemctl status tak8089guard.timer
 | TAK Server config | `/opt/tak/CoreConfig.xml` |
 | Certificates | `/opt/tak/certs/files/` |
 | Logs | `/opt/tak/logs/` |
-| Guard Dog scripts | `/opt/tak-guarddog/` |
-| Guard Dog logs | `/var/log/takguard/` |
-| Health endpoint | `http://localhost:8080/health` |
 
 ---
 
@@ -293,22 +146,17 @@ tail -100 /opt/tak/logs/takserver-messaging.log
 
 **Can't access web interface:**
 - Wait 5 minutes after installation
-- Check firewall: `firewall-cmd --list-all` or `ufw status`
+- Check firewall: `ufw status`
 - Verify certificate imported in browser
 
-**Caddy SSL fails:**
-```bash
-journalctl -u caddy -n 50
-# Verify DNS: dig yourdomain.com
-# Check ports 80/443 open
-```
+For SSL/domain names or production monitoring, this repo doesn't include a bundled setup script — see [DEPLOYMENT-GUIDE.md](DEPLOYMENT-GUIDE.md) for what's actually supported.
 
 ---
 
 ## Support
 
-- **Repository:** [github.com/takwerx/tak-server-installer](https://github.com/takwerx/tak-server-installer)
-- **Issues:** [Report bugs/issues](https://github.com/takwerx/tak-server-installer/issues)
+- **Repository:** [github.com/TheCrawlSpace1/tak-server-installer](https://github.com/TheCrawlSpace1/tak-server-installer)
+- **Issues:** [Report bugs/issues](https://github.com/TheCrawlSpace1/tak-server-installer/issues)
 - **YouTube:** [The TAK Syndicate](https://www.youtube.com/@thetaksyndicate6234)
 - **Website:** [https://www.thetaksyndicate.org/](https://www.thetaksyndicate.org/)
 
