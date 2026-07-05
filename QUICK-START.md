@@ -85,9 +85,9 @@ Expect `active (exited)` — this is an LSB init script that launches the Java p
 
 **Check all services running:**
 ```bash
-ps -ef | grep -E "takserver\.war|takserver-pm\.jar|takserver-retention\.jar"
+pgrep -af 'Dspring.profiles.active=(config|messaging|api)|takserver-pm.jar|takserver-retention.jar'
 ```
-Should show 5 processes: config, messaging, api, plugins, retention. Note that `plugins` and `retention` run as `takserver-pm.jar`/`takserver-retention.jar`, not `takserver.war`, so a plain `grep takserver.war` will miss them.
+Should show 5 processes: config, messaging, api, plugins, retention. Matching on `-Dspring.profiles.active=` and the plugins/retention jar names avoids both false negatives (plugins/retention never run `takserver.war`) and false positives (messaging/api load `takserver-war-5.7-RELEASE-43.jar` from their classpath, which a loose `grep takserver.war` would wrongly match).
 
 ---
 

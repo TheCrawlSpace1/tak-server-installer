@@ -175,9 +175,9 @@ You should see: `Active: active (exited)` — this is an LSB init script that la
 
 **Check all services are running:**
 ```bash
-ps -ef | grep -E "takserver\.war|takserver-pm\.jar|takserver-retention\.jar"
+pgrep -af 'Dspring.profiles.active=(config|messaging|api)|takserver-pm.jar|takserver-retention.jar'
 ```
-You should see 5 Java processes: config, messaging, api (all `-jar takserver.war` with different `-Dspring.profiles.active=`), plus `plugins` (`-jar takserver-pm.jar`) and `retention` (`-jar takserver-retention.jar`) — the latter two don't match a plain `grep takserver.war`.
+You should see 5 Java processes: `config` (`-jar takserver.war -Dspring.profiles.active=config`), `messaging` and `api` (run `tak.server.ServerConfiguration` off the classpath, identified by `-Dspring.profiles.active=messaging`/`=api` — neither actually runs `-jar takserver.war`), plus `plugins` (`-jar takserver-pm.jar`) and `retention` (`-jar takserver-retention.jar`). A plain `grep takserver.war` both misses plugins/retention and, because the unescaped `.` matches any character, falsely matches messaging/api's `takserver-war-5.7-RELEASE-43.jar` classpath entry.
 
 **Check logs for errors:**
 ```bash
@@ -494,8 +494,8 @@ systemctl enable takserver     # auto-start on boot
 systemctl disable takserver
 tail -f /opt/tak/logs/takserver-messaging.log
 tail -f /opt/tak/logs/takserver-api.log
-ps -ef | grep -E "takserver\.war|takserver-pm\.jar|takserver-retention\.jar"   # check all 5 TAK processes
-pkill -9 -f takserver.war && pkill -9 -f takserver-pm.jar && pkill -9 -f takserver-retention.jar && systemctl start takserver   # kill hung processes, restart
+pgrep -af 'Dspring.profiles.active=(config|messaging|api)|takserver-pm.jar|takserver-retention.jar'   # check all 5 TAK processes
+pkill -9 -f 'Dspring.profiles.active=(config|messaging|api)|takserver-pm.jar|takserver-retention.jar' && systemctl start takserver   # kill hung processes, restart
 ```
 
 ### Certificate commands
