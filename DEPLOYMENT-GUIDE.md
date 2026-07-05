@@ -171,13 +171,13 @@ Your browser will prompt you to select the admin certificate.
 ```bash
 systemctl status takserver
 ```
-You should see: `Active: active (running)`
+You should see: `Active: active (exited)` — this is an LSB init script that launches the Java processes in the background and then exits itself; `active (exited)` is the expected healthy state, not a failure.
 
 **Check all services are running:**
 ```bash
-ps -ef | grep takserver.war
+ps -ef | grep -E "takserver\.war|takserver-pm\.jar|takserver-retention\.jar"
 ```
-You should see 5 Java processes: config, messaging, api, plugins, retention
+You should see 5 Java processes: config, messaging, api (all `-jar takserver.war` with different `-Dspring.profiles.active=`), plus `plugins` (`-jar takserver-pm.jar`) and `retention` (`-jar takserver-retention.jar`) — the latter two don't match a plain `grep takserver.war`.
 
 **Check logs for errors:**
 ```bash
@@ -494,8 +494,8 @@ systemctl enable takserver     # auto-start on boot
 systemctl disable takserver
 tail -f /opt/tak/logs/takserver-messaging.log
 tail -f /opt/tak/logs/takserver-api.log
-ps -ef | grep takserver.war    # check all TAK processes
-pkill -9 -f takserver.war && systemctl start takserver   # kill hung process, restart
+ps -ef | grep -E "takserver\.war|takserver-pm\.jar|takserver-retention\.jar"   # check all 5 TAK processes
+pkill -9 -f takserver.war && pkill -9 -f takserver-pm.jar && pkill -9 -f takserver-retention.jar && systemctl start takserver   # kill hung processes, restart
 ```
 
 ### Certificate commands

@@ -81,12 +81,13 @@ Now browse to `https://YOUR-IP:8443` and select the admin certificate when promp
 ```bash
 systemctl status takserver
 ```
+Expect `active (exited)` — this is an LSB init script that launches the Java processes in the background and exits itself; that's the healthy state.
 
 **Check all services running:**
 ```bash
-ps -ef | grep takserver.war
+ps -ef | grep -E "takserver\.war|takserver-pm\.jar|takserver-retention\.jar"
 ```
-Should show 5 processes: config, messaging, api, plugins, retention
+Should show 5 processes: config, messaging, api, plugins, retention. Note that `plugins` and `retention` run as `takserver-pm.jar`/`takserver-retention.jar`, not `takserver.war`, so a plain `grep takserver.war` will miss them.
 
 ---
 
